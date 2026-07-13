@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仪表盘 - 管理端</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <h1>管理后台</h1>
+      <nav>
+        <ul>
+          <li><a href="dashboard.html" class="nav-link">仪表盘</a></li>
+          <li><a href="users.html" class="nav-link">用户管理</a></li>
+          <li><a href="videos.html" class="nav-link">视频管理</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <header class="header">
+        <h2>仪表盘</h2>
+        <p>查看网站的统计数据和概览</p>
+      </header>
+
+      <section class="dashboard-section">
+        <div class="dashboard-card">
+          <h3>用户数量</h3>
+          <div class="count" id="userCount">0</div>
+        </div>
+        
+        <div class="dashboard-card">
+          <h3>视频数量</h3>
+          <div class="count" id="videoCount">0</div>
+        </div>
+        
+        <div class="dashboard-card">
+          <h3>轮播图数量</h3>
+          <div class="count" id="carouselCount">0</div>
+        </div>
+      </section>
+
+      <section class="table-container">
+        <h3>最近添加的视频</h3>
+        <table id="recentVideos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>名称</th>
+              <th>作者</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="loading">加载中...</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // 获取统计数据
+    async function getDashboardData() {
+      try {
+        const data = await fetchApi('http://localhost:8091/api/dashboard');
+        
+        document.getElementById('userCount').textContent = data.userCount;
+        document.getElementById('videoCount').textContent = data.videoCount;
+        document.getElementById('carouselCount').textContent = data.carouselCount;
+      } catch (error) {
+        console.error('获取仪表盘数据失败:', error);
+      }
+    }
+
+    // 获取最近添加的视频
+    async function getRecentVideos() {
+      try {
+        const videos = await fetchApi('http://localhost:8091/api/videos');
+        const recentVideos = videos.slice(-5).reverse(); // 最近5个视频
+        
+        const tbody = document.querySelector('#recentVideos tbody');
+        tbody.innerHTML = '';
+        
+        if (recentVideos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">暂无视频数据</td></tr>';
+          return;
+        }
+        
+        recentVideos.forEach(video => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${video.id}</td>
+            <td>${video.name}</td>
+            <td>${video.author}</td>
+            <td>
+              <button class="btn-primary" onclick="editVideo(${video.id})">编辑</button>
+              <button class="btn-danger" onclick="deleteVideo(${video.id})">删除</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('获取最近视频失败:', error);
+        const tbody = document.querySelector('#recentVideos tbody');
+        tbody.innerHTML = '<tr><td colspan="4" class="error">获取视频数据失败</td></tr>';
+      }
+    }
+
+    // 编辑视频
+    function editVideo(id) {
+      window.location.href = `videos.html?id=${id}`;
+    }
+
+    // 删除视频
+    async function deleteVideo(id) {
+      if (confirm('确定要删除这个视频吗？')) {
+        try {
+          await fetchApi(`http://localhost:8091/api/videos/${id}`, {
+            method: 'DELETE'
+          });
+          alert('视频删除成功');
+          getRecentVideos();
+          getDashboardData();
+        } catch (error) {
+          console.error('删除视频失败:', error);
+          alert('删除视频失败');
+        }
+      }
+    }
+
+    // 页面加载完成后获取数据
+    document.addEventListener('DOMContentLoaded', () => {
+      getDashboardData();
+      getRecentVideos();
+    });
+  </script>
+</body>
+</html>

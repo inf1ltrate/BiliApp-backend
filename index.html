@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bilibili 视频网站</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+    }
+    
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* 首页样式 */
+    .home {
+      padding: 20px;
+    }
+    
+    .carousel {
+      width: 100%;
+      height: 300px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .carousel-item {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    .carousel-item.active {
+      opacity: 1;
+    }
+    
+    .carousel-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .carousel-indicators {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    
+    .carousel-indicators span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    .carousel-indicators span.active {
+      background-color: white;
+    }
+    
+    .carousel-adv {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 10px;
+      font-size: 18px;
+    }
+    
+    .video-list h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .video-item {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    
+    .video-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .video-thumbnail {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+    }
+    
+    .video-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .video-info {
+      padding: 15px;
+    }
+    
+    .video-info h3 {
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+    
+    .video-info p {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .login-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    
+    .login-btn a {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #00a1d6;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .login-btn a:hover {
+      background-color: #0081b3;
+    }
+    
+    /* 视频详情页样式 */
+    .video-detail {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .back-btn {
+      margin-bottom: 20px;
+    }
+    
+    .back-btn a {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #f0f0f0;
+      color: #333;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .back-btn a:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .video-content h1 {
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    
+    .author {
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 16px;
+    }
+    
+    .video-player {
+      margin-top: 20px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 50px;
+      font-size: 18px;
+      color: #666;
+    }
+    
+    /* 登录页样式 */
+    .login {
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login h1 {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #333;
+    }
+    
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .form-group label {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .form-group input {
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #00a1d6;
+    }
+    
+    .login-btn-submit {
+      padding: 10px;
+      background-color: #00a1d6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    .login-btn-submit:hover {
+      background-color: #0081b3;
+    }
+    
+    .login-message {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  
+  <script>
+    const { createApp } = Vue;
+    const { createRouter, createWebHistory } = VueRouter;
+    
+    // 首页组件
+    const Home = {
+      template: `
+        <div class="home">
+          <!-- 轮播图 -->
+          <div class="carousel" v-if="carousels.length > 0">
+            <div class="carousel-item" v-for="(carousel, index) in carousels" :key="carousel.id" :class="{ active: index === currentIndex }">
+              <img :src="'https://picsum.photos/800/400?random=' + carousel.id" :alt="carousel.adv" />
+              <div class="carousel-adv">{{ carousel.adv }}</div>
+            </div>
+            <!-- 轮播指示器 -->
+            <div class="carousel-indicators">
+              <span v-for="(carousel, index) in carousels" :key="carousel.id" :class="{ active: index === currentIndex }" @click="currentIndex = index"></span>
+            </div>
+          </div>
+
+          <!-- 视频列表 -->
+          <div class="video-list">
+            <h2>视频列表</h2>
+            <div class="video-grid">
+              <div class="video-item" v-for="video in videos" :key="video.id" @click="goToVideo(video.id)">
+                <div class="video-thumbnail">
+                  <img :src="'https://picsum.photos/300/200?random=' + video.id" :alt="video.name" />
+                </div>
+                <div class="video-info">
+                  <h3>{{ video.name }}</h3>
+                  <p>{{ video.author }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 登录按钮 -->
+          <div class="login-btn">
+            <router-link to="/login">登录</router-link>
+          </div>
+        </div>
+      `,
+      data() {
+        return {
+          carousels: [],
+          videos: [],
+          currentIndex: 0
+        };
+      },
+      methods: {
+        async fetchCarousels() {
+          try {
+            const response = await fetch('http://localhost:8080/carousels');
+            this.carousels = await response.json();
+          } catch (error) {
+            console.error('获取轮播图失败:', error);
+          }
+        },
+        async fetchVideos() {
+          try {
+            const response = await fetch('http://localhost:8080/videos');
+            this.videos = await response.json();
+          } catch (error) {
+            console.error('获取视频列表失败:', error);
+          }
+        },
+        startCarousel() {
+          setInterval(() => {
+            this.currentIndex = (this.currentIndex + 1) % this.carousels.length;
+          }, 3000);
+        },
+        goToVideo(id) {
+          router.push(`/video/${id}`);
+        }
+      },
+      mounted() {
+        this.fetchCarousels();
+        this.fetchVideos();
+        this.startCarousel();
+      }
+    };
+    
+    // 视频详情页组件
+    const VideoDetail = {
+      template: `
+        <div class="video-detail">
+          <div class="back-btn">
+            <router-link to="/">返回首页</router-link>
+          </div>
+          
+          <div class="video-content" v-if="video">
+            <h1>{{ video.name }}</h1>
+            <p class="author">作者：{{ video.author }}</p>
+            <div class="video-player">
+              <video :src="video.url" controls width="100%" height="400px"></video>
+            </div>
+          </div>
+          
+          <div class="loading" v-else>
+            加载中...
+          </div>
+        </div>
+      `,
+      data() {
+        return {
+          video: null
+        };
+      },
+      methods: {
+        async fetchVideo() {
+          try {
+            const { id } = router.currentRoute.value.params;
+            const response = await fetch(`http://localhost:8080/videos/${id}`);
+            this.video = await response.json();
+          } catch (error) {
+            console.error('获取视频详情失败:', error);
+          }
+        }
+      },
+      mounted() {
+        this.fetchVideo();
+      }
+    };
+    
+    // 登录页组件
+    const Login = {
+      template: `
+        <div class="login">
+          <h1>登录</h1>
+          <form class="login-form" @submit.prevent="handleLogin">
+            <div class="form-group">
+              <label for="username">用户名</label>
+              <input type="text" id="username" v-model="username" placeholder="请输入用户名" />
+            </div>
+            <div class="form-group">
+              <label for="password">密码</label>
+              <input type="password" id="password" v-model="password" placeholder="请输入密码" />
+            </div>
+            <button type="submit" class="login-btn-submit">登录</button>
+          </form>
+          <div class="login-message" v-if="message">
+            {{ message }}
+          </div>
+        </div>
+      `,
+      data() {
+        return {
+          username: '',
+          password: '',
+          message: ''
+        };
+      },
+      methods: {
+        async handleLogin() {
+          try {
+            // 这里应该调用后端的登录接口
+            // 现在只是模拟登录
+            if (this.username && this.password) {
+              this.message = '登录成功！';
+              setTimeout(() => {
+                router.push('/');
+              }, 1000);
+            } else {
+              this.message = '请输入用户名和密码';
+            }
+          } catch (error) {
+            console.error('登录失败:', error);
+            this.message = '登录失败，请重试';
+          }
+        }
+      }
+    };
+    
+    // 路由配置
+    const routes = [
+      {
+        path: '/',
+        name: 'Home',
+        component: Home
+      },
+      {
+        path: '/video/:id',
+        name: 'VideoDetail',
+        component: VideoDetail
+      },
+      {
+        path: '/login',
+        name: 'Login',
+        component: Login
+      }
+    ];
+    
+    const router = createRouter({
+      history: createWebHistory(),
+      routes
+    });
+    
+    // 创建应用
+    const app = createApp({
+      template: `
+        <div class="app">
+          <router-view />
+        </div>
+      `
+    });
+    
+    app.use(router);
+    app.mount('#app');
+  </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 管理端</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <h1>管理后台</h1>
+      <nav>
+        <ul>
+          <li><a href="dashboard.html" class="nav-link">仪表盘</a></li>
+          <li><a href="users.html" class="nav-link">用户管理</a></li>
+          <li><a href="videos.html" class="nav-link">视频管理</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <header class="header">
+        <h2>用户管理</h2>
+        <p>管理网站的用户信息</p>
+      </header>
+
+      <!-- 添加用户表单 -->
+      <div class="form-container">
+        <h3>添加用户</h3>
+        <form id="addUserForm">
+          <div class="form-group">
+            <label for="name">用户名</label>
+            <input type="text" id="name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <div class="form-group">
+            <label for="email">邮箱</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <button type="submit" class="btn-primary">添加用户</button>
+        </form>
+      </div>
+
+      <!-- 用户列表 -->
+      <div class="table-container">
+        <h3>用户列表</h3>
+        <table id="usersTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>用户名</th>
+              <th>邮箱</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="loading">加载中...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- 编辑用户模态框 -->
+  <div id="editUserModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>编辑用户</h3>
+      <form id="editUserForm">
+        <input type="hidden" id="editUserId">
+        <div class="form-group">
+          <label for="editName">用户名</label>
+          <input type="text" id="editName" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="editPassword">密码</label>
+          <input type="password" id="editPassword" name="password" required>
+        </div>
+        <div class="form-group">
+          <label for="editEmail">邮箱</label>
+          <input type="email" id="editEmail" name="email" required>
+        </div>
+        <button type="submit" class="btn-primary">保存修改</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // 获取用户列表
+    async function getUsers() {
+      try {
+        const users = await fetchApi('http://localhost:8091/api/users');
+        
+        const tbody = document.querySelector('#usersTable tbody');
+        tbody.innerHTML = '';
+        
+        if (users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">暂无用户数据</td></tr>';
+          return;
+        }
+        
+        users.forEach(user => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>
+              <button class="btn-primary" onclick="openEditModal(${user.id})">编辑</button>
+              <button class="btn-danger" onclick="deleteUser(${user.id})">删除</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('获取用户列表失败:', error);
+        const tbody = document.querySelector('#usersTable tbody');
+        tbody.innerHTML = '<tr><td colspan="4" class="error">获取用户数据失败</td></tr>';
+      }
+    }
+
+    // 打开编辑模态框
+    async function openEditModal(id) {
+      try {
+        const user = await fetchApi(`http://localhost:8091/api/users/${id}`);
+        
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editName').value = user.name;
+        document.getElementById('editPassword').value = user.password;
+        document.getElementById('editEmail').value = user.email;
+        
+        document.getElementById('editUserModal').style.display = 'block';
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        alert('获取用户信息失败');
+      }
+    }
+
+    // 添加用户
+    document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const userData = {
+        name: formData.get('name'),
+        password: formData.get('password'),
+        email: formData.get('email')
+      };
+      
+      try {
+        await fetchApi('http://localhost:8091/api/users', {
+          method: 'POST',
+          body: JSON.stringify(userData)
+        });
+        
+        alert('用户添加成功');
+        e.target.reset();
+        getUsers();
+      } catch (error) {
+        console.error('添加用户失败:', error);
+        alert('添加用户失败');
+      }
+    });
+
+    // 编辑用户
+    document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const userId = formData.get('id');
+      const userData = {
+        name: formData.get('name'),
+        password: formData.get('password'),
+        email: formData.get('email')
+      };
+      
+      try {
+        await fetchApi(`http://localhost:8091/api/users/${userId}`, {
+          method: 'PUT',
+          body: JSON.stringify(userData)
+        });
+        
+        alert('用户编辑成功');
+        document.getElementById('editUserModal').style.display = 'none';
+        getUsers();
+      } catch (error) {
+        console.error('编辑用户失败:', error);
+        alert('编辑用户失败');
+      }
+    });
+
+    // 删除用户
+    async function deleteUser(id) {
+      if (confirm('确定要删除这个用户吗？')) {
+        try {
+          await fetchApi(`http://localhost:8091/api/users/${id}`, {
+            method: 'DELETE'
+          });
+          
+          alert('用户删除成功');
+          getUsers();
+        } catch (error) {
+          console.error('删除用户失败:', error);
+          alert('删除用户失败');
+        }
+      }
+    }
+
+    // 页面加载完成后获取用户列表
+    document.addEventListener('DOMContentLoaded', () => {
+      getUsers();
+    });
+  </script>
+</body>
+</html>

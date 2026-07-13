@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频管理 - 管理端</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <h1>管理后台</h1>
+      <nav>
+        <ul>
+          <li><a href="dashboard.html" class="nav-link">仪表盘</a></li>
+          <li><a href="users.html" class="nav-link">用户管理</a></li>
+          <li><a href="videos.html" class="nav-link">视频管理</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <header class="header">
+        <h2>视频管理</h2>
+        <p>管理网站的视频内容</p>
+      </header>
+
+      <!-- 添加视频表单 -->
+      <div class="form-container">
+        <h3>添加视频</h3>
+        <form id="addVideoForm">
+          <div class="form-group">
+            <label for="videoName">视频名称</label>
+            <input type="text" id="videoName" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="videoAuthor">作者</label>
+            <input type="text" id="videoAuthor" name="author" required>
+          </div>
+          <div class="form-group">
+            <label for="videoUrl">视频地址</label>
+            <input type="text" id="videoUrl" name="url" required>
+          </div>
+          <button type="submit" class="btn-primary">添加视频</button>
+        </form>
+      </div>
+
+      <!-- 视频列表 -->
+      <div class="table-container">
+        <h3>视频列表</h3>
+        <table id="videosTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>名称</th>
+              <th>作者</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="loading">加载中...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- 编辑视频模态框 -->
+  <div id="editVideoModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>编辑视频</h3>
+      <form id="editVideoForm">
+        <input type="hidden" id="editVideoId">
+        <div class="form-group">
+          <label for="editVideoName">视频名称</label>
+          <input type="text" id="editVideoName" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="editVideoAuthor">作者</label>
+          <input type="text" id="editVideoAuthor" name="author" required>
+        </div>
+        <div class="form-group">
+          <label for="editVideoUrl">视频地址</label>
+          <input type="text" id="editVideoUrl" name="url" required>
+        </div>
+        <button type="submit" class="btn-primary">保存修改</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // 获取视频列表
+    async function getVideos() {
+      try {
+        const videos = await fetchApi('http://localhost:8091/api/videos');
+        
+        const tbody = document.querySelector('#videosTable tbody');
+        tbody.innerHTML = '';
+        
+        if (videos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">暂无视频数据</td></tr>';
+          return;
+        }
+        
+        videos.forEach(video => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${video.id}</td>
+            <td>${video.name}</td>
+            <td>${video.author}</td>
+            <td>
+              <button class="btn-primary" onclick="openEditModal(${video.id})">编辑</button>
+              <button class="btn-danger" onclick="deleteVideo(${video.id})">删除</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('获取视频列表失败:', error);
+        const tbody = document.querySelector('#videosTable tbody');
+        tbody.innerHTML = '<tr><td colspan="4" class="error">获取视频数据失败</td></tr>';
+      }
+    }
+
+    // 打开编辑模态框
+    async function openEditModal(id) {
+      try {
+        const video = await fetchApi(`http://localhost:8091/api/videos/${id}`);
+        
+        document.getElementById('editVideoId').value = video.id;
+        document.getElementById('editVideoName').value = video.name;
+        document.getElementById('editVideoAuthor').value = video.author;
+        document.getElementById('editVideoUrl').value = video.url;
+        
+        document.getElementById('editVideoModal').style.display = 'block';
+      } catch (error) {
+        console.error('获取视频信息失败:', error);
+        alert('获取视频信息失败');
+      }
+    }
+
+    // 添加视频
+    document.getElementById('addVideoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const videoData = {
+        name: formData.get('name'),
+        author: formData.get('author'),
+        url: formData.get('url')
+      };
+      
+      try {
+        await fetchApi('http://localhost:8091/api/videos', {
+          method: 'POST',
+          body: JSON.stringify(videoData)
+        });
+        
+        alert('视频添加成功');
+        e.target.reset();
+        getVideos();
+      } catch (error) {
+        console.error('添加视频失败:', error);
+        alert('添加视频失败');
+      }
+    });
+
+    // 编辑视频
+    document.getElementById('editVideoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const videoId = formData.get('id');
+      const videoData = {
+        name: formData.get('name'),
+        author: formData.get('author'),
+        url: formData.get('url')
+      };
+      
+      try {
+        await fetchApi(`http://localhost:8091/api/videos/${videoId}`, {
+          method: 'PUT',
+          body: JSON.stringify(videoData)
+        });
+        
+        alert('视频编辑成功');
+        document.getElementById('editVideoModal').style.display = 'none';
+        getVideos();
+      } catch (error) {
+        console.error('编辑视频失败:', error);
+        alert('编辑视频失败');
+      }
+    });
+
+    // 删除视频
+    async function deleteVideo(id) {
+      if (confirm('确定要删除这个视频吗？')) {
+        try {
+          await fetchApi(`http://localhost:8091/api/videos/${id}`, {
+            method: 'DELETE'
+          });
+          
+          alert('视频删除成功');
+          getVideos();
+        } catch (error) {
+          console.error('删除视频失败:', error);
+          alert('删除视频失败');
+        }
+      }
+    }
+
+    // 页面加载完成后获取视频列表
+    document.addEventListener('DOMContentLoaded', () => {
+      getVideos();
+    });
+  </script>
+</body>
+</html>
