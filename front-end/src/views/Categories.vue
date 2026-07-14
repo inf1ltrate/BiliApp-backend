@@ -1,73 +1,59 @@
 <template>
-  <div class="categories">
+  <div class="page">
     <div class="page-header">
       <button class="back-btn" @click="$router.back()">← 返回</button>
       <h2>视频分类</h2>
     </div>
-    <div class="category-grid">
-      <div class="category-item" v-for="cat in categories" :key="cat.id" @click="filterByCategory(cat.id)">
-        <img :src="cat.icon || 'https://picsum.photos/80/80?random=' + cat.id" class="category-icon" />
-        <span class="category-name">{{ cat.name }}</span>
+    <div class="cat-grid">
+      <div class="cat-item" v-for="cat in categories" :key="cat.id" @click="selectCat(cat.id)">
+        <img :src="cat.icon" class="cat-icon" />
+        <span>{{ cat.name }}</span>
       </div>
     </div>
-    <div class="video-section" v-if="selectedCategory">
-      <h3>分类视频 <button @click="showAll" class="show-all-btn">查看全部</button></h3>
-      <div class="video-grid">
-        <div class="video-item" v-for="video in categoryVideos" :key="video.id" @click="goToVideo(video.id)">
-          <div class="thumbnail"><img :src="'https://picsum.photos/300/200?random=' + video.id" /></div>
-          <div class="info"><h4>{{ video.name }}</h4><p>{{ video.author }} · {{ formatViews(video.views) }}</p></div>
-        </div>
+    <div v-if="selected" class="video-section">
+      <h3>分类视频</h3>
+      <div class="video-card" v-for="v in catVideos" :key="v.id" @click="$router.push('/video/' + v.id)">
+        <div class="v-cover"><img :src="v.thumb || 'https://picsum.photos/400/225?random=' + v.id" /><span class="pc">{{ format(v.views) }}</span></div>
+        <div class="v-meta"><h4>{{ v.name }}</h4><p>{{ v.author }}</p></div>
       </div>
     </div>
+    <div v-else class="empty-tip">选择分类查看视频</div>
   </div>
 </template>
-
 <script>
 export default {
   name: 'Categories',
-  data() {
-    return { categories: [], selectedCategory: null, categoryVideos: [] }
-  },
-  mounted() { this.fetchCategories(); },
+  data() { return { categories: [], selected: null, catVideos: [] } },
+  mounted() { this.fetchCats(); },
   methods: {
-    async fetchCategories() {
-      try {
-        const res = await fetch('http://localhost:8080/categories');
-        this.categories = await res.json();
-      } catch (e) { console.error('获取分类失败:', e); }
+    async fetchCats() {
+      try { const r = await fetch('http://localhost:8080/categories'); this.categories = await r.json(); } catch (e) {}
     },
-    async filterByCategory(id) {
-      this.selectedCategory = id;
-      try {
-        const res = await fetch('http://localhost:8080/videos?category_id=' + id);
-        const data = await res.json();
-        this.categoryVideos = data.list || data;
-      } catch (e) { console.error('获取分类视频失败:', e); }
+    async selectCat(id) {
+      this.selected = id;
+      try { const r = await fetch('http://localhost:8080/videos?category_id=' + id); const d = await r.json(); this.catVideos = d.list || d; } catch (e) {}
     },
-    showAll() { this.selectedCategory = null; this.categoryVideos = []; },
-    goToVideo(id) { this.$router.push('/video/' + id); },
-    formatViews(v) { return v >= 10000 ? (v / 10000).toFixed(1) + '万' : v; }
+    format(n) { return n >= 10000 ? (n/10000).toFixed(1)+'万' : n; }
   }
 }
 </script>
-
 <style scoped>
-.categories { padding: 20px; max-width: 1200px; margin: 0 auto; }
-.page-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-.back-btn { padding: 8px 16px; background: none; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
-.category-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; }
-.category-item { display: flex; flex-direction: column; align-items: center; padding: 15px; border-radius: 12px; cursor: pointer; transition: all 0.3s; width: 100px; }
-.category-item:hover { background: #f0f0f0; }
-.category-icon { width: 56px; height: 56px; border-radius: 50%; margin-bottom: 8px; }
-.category-name { font-size: 13px; text-align: center; }
-.video-section h3 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.show-all-btn { padding: 5px 12px; font-size: 12px; background: none; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
-.video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
-.video-item { border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.3s; }
-.video-item:hover { transform: translateY(-3px); }
-.thumbnail { width: 100%; height: 160px; overflow: hidden; }
-.thumbnail img { width: 100%; height: 100%; object-fit: cover; }
-.info { padding: 10px; }
-.info h4 { font-size: 14px; margin-bottom: 4px; }
-.info p { font-size: 12px; color: #666; }
+.page { background: #f4f4f4; }
+.page-header { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: white; }
+.back-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: #333; }
+.page-header h2 { font-size: 16px; }
+.cat-grid { display: flex; flex-wrap: wrap; padding: 12px; }
+.cat-item { width: 33.33%; display: flex; flex-direction: column; align-items: center; padding: 10px; cursor: pointer; }
+.cat-icon { width: 44px; height: 44px; border-radius: 50%; margin-bottom: 6px; }
+.cat-item span { font-size: 12px; }
+.video-section { margin: 12px; }
+.video-section h3 { font-size: 14px; padding: 8px 4px; }
+.video-card { background: white; border-radius: 8px; overflow: hidden; margin-bottom: 10px; cursor: pointer; }
+.v-cover { position: relative; height: 160px; }
+.v-cover img { width: 100%; height: 100%; object-fit: cover; }
+.pc { position: absolute; bottom: 6px; left: 8px; background: rgba(0,0,0,0.6); color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+.v-meta { padding: 8px 10px; }
+.v-meta h4 { font-size: 13px; margin-bottom: 3px; }
+.v-meta p { font-size: 12px; color: #999; }
+.empty-tip { text-align: center; padding: 40px; color: #999; }
 </style>

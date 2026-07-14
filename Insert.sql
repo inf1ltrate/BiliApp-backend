@@ -1,6 +1,6 @@
 -- 插入用户表测试数据
 INSERT INTO `user` (`username`, `password`, `nickname`, `avatar`, `phone`, `email`) VALUES
-('admin', '123456', '管理员', 'https://picsum.photos/80/80?random=1', '13800138001', 'admin@bilibili.com'),
+('admin', '123456', '哔哩哔哩管理员', 'https://picsum.photos/80/80?random=1', '13800138001', 'admin@bilibili.com'),
 ('user1', 'password1', '哔哩哔哩用户1', 'https://picsum.photos/80/80?random=2', '13800138002', 'user1@bilibili.com'),
 ('user2', 'password2', '哔哩哔哩用户2', 'https://picsum.photos/80/80?random=3', '13800138003', 'user2@bilibili.com'),
 ('user3', 'password3', '哔哩哔哩用户3', 'https://picsum.photos/80/80?random=4', '13800138004', 'user3@bilibili.com'),
@@ -23,48 +23,45 @@ INSERT INTO `category` (`name`, `icon`, `sort`) VALUES
 ('生活', 'https://picsum.photos/60/60?random=107', 7),
 ('游戏', 'https://picsum.photos/60/60?random=108', 8);
 
--- 插入视频表测试数据
-INSERT INTO `video` (`name`, `author`, `url`, `category_id`, `views`, `likes`, `upload_time`) VALUES
-('2026年度总结', '张三', 'video/1.mp4', 7, 125000, 8900, '2026-01-15 10:30:00'),
-('前端开发入门教程', '李四', 'video/2.mp4', 6, 234000, 15600, '2026-02-20 14:00:00'),
-('React hooks详解', '王五', 'video/3.mp4', 6, 98000, 6700, '2026-03-10 09:15:00'),
-('Node.js实战', '赵六', 'video/4.mp4', 6, 156000, 11200, '2026-04-05 16:45:00'),
-('MySQL数据库优化', '钱七', 'video/5.mp4', 6, 87000, 5400, '2026-05-12 11:20:00'),
-('Vue3新特性', '孙八', 'video/6.mp4', 6, 201000, 13800, '2026-06-18 13:30:00'),
-('TypeScript基础', '周九', 'video/7.mp4', 6, 143000, 9800, '2026-07-22 15:10:00'),
-('前端性能优化', '吴十', 'video/8.mp4', 6, 76000, 4200, '2026-08-30 10:00:00'),
-('RESTful API设计', '郑一', 'video/9.mp4', 6, 112000, 7600, '2026-09-14 14:30:00'),
-('微服务架构', '王二', 'video/10.mp4', 6, 65000, 3500, '2026-10-08 12:00:00'),
-('新番推荐第一期', '动漫 UP主', 'video/1.mp4', 1, 340000, 22000, '2026-04-01 18:00:00'),
-('热门音乐盘点', '音乐 UP主', 'video/2.mp4', 3, 450000, 31000, '2026-05-20 20:00:00');
+-- 插入视频表测试数据 (本地视频文件)
+INSERT INTO `video` (`name`, `author`, `url`, `thumb`, `category_id`, `views`, `likes`, `upload_time`) VALUES
+('大耳朵兔子大冒险', '动画UP主', 'http://localhost:8080/video/1.mp4', 'https://picsum.photos/400/225?random=1', 1, 125000, 8900, '2026-01-15 10:30:00'),
+('大象之梦动画短片', 'Blender工作室', 'http://localhost:8080/video/2.mp4', 'https://picsum.photos/400/225?random=2', 1, 234000, 15600, '2026-02-20 14:00:00'),
+('辛特尔动画 - 少女与龙', '奇幻动画', 'http://localhost:8080/video/3.mp4', 'https://picsum.photos/400/225?random=3', 2, 98000, 6700, '2026-03-10 09:15:00'),
+('科技实验：火焰的艺术', '科学探索', 'http://localhost:8080/video/4.mp4', 'https://picsum.photos/400/225?random=4', 6, 156000, 11200, '2026-04-05 16:45:00'),
+('极限逃脱大挑战', '冒险频道', 'http://localhost:8080/video/5.mp4', 'https://picsum.photos/400/225?random=5', 7, 87000, 5400, '2026-05-12 11:20:00'),
+('趣味科技短片合集', '科技UP主', 'http://localhost:8080/video/6.mp4', 'https://picsum.photos/400/225?random=6', 3, 201000, 13800, '2026-06-18 13:30:00'),
+('自驾风景大片', '旅行频道', 'http://localhost:8080/video/7.mp4', 'https://picsum.photos/400/225?random=7', 7, 143000, 9800, '2026-07-22 15:10:00'),
+('汽车测评：越野之旅', '汽车频道', 'http://localhost:8080/video/8.mp4', 'https://picsum.photos/400/225?random=8', 6, 76000, 4200, '2026-08-30 10:00:00'),
+('钢铁之泪科幻短片', '科幻动画', 'http://localhost:8080/video/9.mp4', 'https://picsum.photos/400/225?random=9', 2, 112000, 7600, '2026-09-14 14:30:00'),
+('汽车评测大合集', '汽车UP主', 'http://localhost:8080/video/10.mp4', 'https://picsum.photos/400/225?random=10', 8, 65000, 3500, '2026-10-08 12:00:00');
 
 -- 插入轮播图表测试数据
 INSERT INTO `carousel` (`adv`, `pic`, `vid`, `sort`) VALUES
-('2026年度总结，回顾一年的收获与成长', 'image/1.jpg', 1, 1),
-('前端开发入门教程，零基础也能学', 'image/2.jpg', 2, 2),
-('React hooks详解，让你的代码更简洁', 'image/3.jpg', 3, 3),
-('Node.js实战，从入门到精通', 'image/4.jpg', 4, 4),
-('MySQL数据库优化，提升系统性能', 'image/5.jpg', 5, 5);
+('🔥 2026年度最佳动画，不容错过', 'https://picsum.photos/800/400?random=100', 1, 1),
+('🎬 开源动画大片 Elephant Dream', 'https://picsum.photos/800/400?random=101', 2, 2),
+('⚡ 超燃科技实验短片合集', 'https://picsum.photos/800/400?random=102', 4, 3),
+('🎵 趣味音乐视频推荐', 'https://picsum.photos/800/400?random=103', 6, 4);
 
 -- 插入视频评论表测试数据
 INSERT INTO `comment` (`user_id`, `video_id`, `content`, `reply_count`) VALUES
-(2, 1, '非常精彩的总结，学到了很多新东西！', 5),
+(2, 1, '非常精彩的动画，制作太用心了！', 5),
 (3, 1, 'UP主加油，期待下一期内容', 3),
-(4, 2, '教程讲得很清楚，适合初学者', 8),
-(5, 3, 'React hooks确实是必备技能', 2),
-(6, 4, 'Node.js实战项目很实用', 4),
-(7, 5, '数据库优化的技巧很干货', 1),
-(8, 6, 'Vue3 Composition API太好用了', 6),
-(9, 7, 'TypeScript从入门到精通', 3),
-(10, 1, '年度总结非常有意义', 7),
-(2, 11, '番剧推荐都很不错，已经追起来了', 12);
+(4, 2, '这个短片的视效太震撼了', 8),
+(5, 3, 'Sintel的剧情真的很感人', 2),
+(6, 4, '科技实验类视频很涨知识', 4),
+(7, 5, '节奏紧凑，看得停不下来', 1),
+(8, 6, '音乐和画面配合得恰到好处', 6),
+(9, 7, '自驾游的视频太治愈了', 3),
+(10, 1, '每年必看的经典动画', 7),
+(2, 2, '开源动画的代表作，支持！', 12);
 
 -- 插入点赞记录表测试数据
 INSERT INTO `like_record` (`user_id`, `video_id`) VALUES
 (2, 1), (3, 1), (4, 1), (5, 2), (6, 2),
 (7, 3), (8, 3), (9, 4), (10, 4), (2, 5),
 (3, 6), (4, 6), (5, 7), (6, 7), (7, 8),
-(8, 9), (9, 10), (10, 11), (2, 12), (3, 12);
+(8, 9), (9, 10), (10, 2), (2, 6), (3, 4);
 
 -- 插入充电订单表测试数据
 INSERT INTO `order_record` (`order_no`, `user_id`, `amount`, `status`) VALUES

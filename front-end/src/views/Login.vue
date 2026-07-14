@@ -1,21 +1,47 @@
 <template>
-  <div class="login">
-    <div class="login-container">
-      <h2>登录</h2>
-      <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="username">用户名</label>
-          <input type="text" id="username" v-model="form.username" required />
-        </div>
-        <div class="form-group">
-          <label for="password">密码</label>
-          <input type="password" id="password" v-model="form.password" required />
-        </div>
-        <button type="submit" class="login-button">登录</button>
-      </form>
-      <div class="back-link">
-        <router-link to="/">返回首页</router-link>
+  <div class="login-page">
+    <div class="back-bar">
+      <button class="back-btn" @click="$router.back()">← 返回</button>
+    </div>
+
+    <div class="login-header">
+      <h1>哔哩哔哩</h1>
+      <p>登录或注册账号</p>
+    </div>
+
+    <div class="login-form">
+      <div class="login-tabs">
+        <span :class="{ active: isLogin }" @click="isLogin = true">登录</span>
+        <span :class="{ active: !isLogin }" @click="isLogin = false">注册</span>
       </div>
+
+      <form v-if="isLogin" @submit.prevent="handleLogin" class="form">
+        <div class="input-group">
+          <span class="input-icon">👤</span>
+          <input type="text" v-model="loginForm.username" placeholder="请输入用户名" required />
+        </div>
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input type="password" v-model="loginForm.password" placeholder="请输入密码" required />
+        </div>
+        <button type="submit" class="submit-btn">登录</button>
+      </form>
+
+      <form v-else @submit.prevent="handleRegister" class="form">
+        <div class="input-group">
+          <span class="input-icon">👤</span>
+          <input type="text" v-model="regForm.username" placeholder="请输入用户名" required />
+        </div>
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input type="password" v-model="regForm.password" placeholder="请输入密码" required />
+        </div>
+        <div class="input-group">
+          <span class="input-icon">✎</span>
+          <input type="text" v-model="regForm.nickname" placeholder="请输入昵称" />
+        </div>
+        <button type="submit" class="submit-btn">注册</button>
+      </form>
     </div>
   </div>
 </template>
@@ -25,24 +51,56 @@ export default {
   name: 'Login',
   data() {
     return {
-      form: {
-        username: '',
-        password: ''
-      }
+      isLogin: true,
+      loginForm: { username: '', password: '' },
+      regForm: { username: '', password: '', nickname: '' }
     }
   },
   methods: {
     async handleLogin() {
+      if (!this.loginForm.username || !this.loginForm.password) {
+        alert('请输入用户名和密码');
+        return;
+      }
       try {
-        // 这里简化处理，实际应该调用登录接口
-        // 由于后端没有专门的登录接口，我们这里模拟登录成功
-        // 实际项目中应该调用后端的登录验证接口
-        console.log('登录信息:', this.form);
-        alert('登录成功！');
-        this.$router.push('/');
-      } catch (error) {
-        console.error('登录失败:', error);
-        alert('登录失败，请检查用户名和密码');
+        const res = await fetch('http://localhost:8080/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.loginForm)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('bilibili_user', JSON.stringify(data.user));
+          alert('登录成功！');
+          this.$router.push('/');
+        } else {
+          alert(data.error || '登录失败');
+        }
+      } catch (e) {
+        console.error('登录失败:', e);
+        alert('登录失败，请检查网络');
+      }
+    },
+    async handleRegister() {
+      if (!this.regForm.username || !this.regForm.password) {
+        alert('用户名和密码不能为空');
+        return;
+      }
+      try {
+        const res = await fetch('http://localhost:8080/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.regForm)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('注册成功，请登录');
+          this.isLogin = true;
+        } else {
+          alert(data.error || '注册失败');
+        }
+      } catch (e) {
+        console.error('注册失败:', e);
       }
     }
   }
@@ -50,76 +108,23 @@ export default {
 </script>
 
 <style scoped>
-.login {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-}
+.login-page { background: #f4f4f4; min-height: 100vh; padding-bottom: 20px; }
+.back-bar { padding: 12px; }
+.back-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: #333; }
 
-.login-container {
-  background-color: white;
-  padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-}
+.login-header { text-align: center; padding: 50px 0 30px; }
+.login-header h1 { font-size: 28px; color: #ff6699; margin-bottom: 10px; }
+.login-header p { color: #999; font-size: 14px; }
 
-.login-container h2 {
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 24px;
-}
+.login-form { background: white; margin: 0 16px; border-radius: 12px; padding: 24px 20px; }
+.login-tabs { display: flex; justify-content: center; gap: 30px; margin-bottom: 24px; }
+.login-tabs span { padding: 8px 0; font-size: 16px; color: #999; cursor: pointer; border-bottom: 2px solid transparent; }
+.login-tabs span.active { color: #ff6699; border-bottom-color: #ff6699; }
 
-.form-group {
-  margin-bottom: 20px;
-}
+.form .input-group { display: flex; align-items: center; background: #f5f5f5; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; }
+.input-icon { margin-right: 10px; font-size: 18px; }
+.input-group input { flex: 1; border: none; background: none; font-size: 15px; outline: none; }
 
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 14px;
-  color: #333;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.login-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #00a1d6;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.login-button:hover {
-  background-color: #0081b6;
-}
-
-.back-link {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.back-link a {
-  color: #00a1d6;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.back-link a:hover {
-  text-decoration: underline;
-}
+.submit-btn { width: 100%; padding: 14px; background: #ff6699; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+.submit-btn:active { opacity: 0.85; }
 </style>

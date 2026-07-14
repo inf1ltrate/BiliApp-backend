@@ -1,9 +1,13 @@
 const express = require('express');
+const path = require('path');
 const connection = require('./dbconfig');
 const app = express();
 const port = 8080;
 
 app.use(express.json());
+
+// 静态文件服务（视频、图片等）
+app.use(express.static(path.join(__dirname, '..')));
 
 // 处理跨域
 app.use((req, res, next) => {

@@ -25,7 +25,8 @@ create table `video` (
     `id` int not null auto_increment comment '视频id',
     `name` varchar(100) not null default '' comment '视频名称',
     `author` varchar(50) not null default '' comment '视频作者',
-    `url` varchar(200) not null default '' comment '视频地址',
+    `url` varchar(500) not null default '' comment '视频播放地址',
+    `thumb` varchar(500) not null default '' comment '视频封面地址',
     `category_id` int not null default 0 comment '分类id',
     `views` int not null default 0 comment '播放量',
     `likes` int not null default 0 comment '点赞数',
@@ -38,7 +39,7 @@ drop table if exists `carousel`;
 create table `carousel` (
     `id` int not null auto_increment comment '轮播图id',
     `adv` varchar(100) not null default '' comment '宣传语',
-    `pic` varchar(200) not null default '' comment '图片地址',
+    `pic` varchar(500) not null default '' comment '图片地址',
     `vid` int not null default 0 comment '关联视频id',
     `sort` int not null default 0 comment '排序',
     primary key (`id`) using btree
